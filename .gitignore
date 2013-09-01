@@ -18,3 +18,10 @@ local.properties
 # Eclipse project files
 .classpath
 .project
+
+# Any jar.
+libs/*.jar
+
+# Eclipse settings
+.settings
+

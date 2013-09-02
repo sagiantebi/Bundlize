@@ -30,6 +30,12 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
+import com.blodev.bundlize.logic.Bundlize;
+/**
+ * An annotation representing an object that can be bundlized using {@link Bundlize}
+ * @author Sagi Antebi
+ *
+ */
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.TYPE)
 public @interface BundlizeObject {

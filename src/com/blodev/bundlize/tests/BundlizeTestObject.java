@@ -28,6 +28,11 @@ package com.blodev.bundlize.tests;
 import com.blodev.bundlize.annotations.BundlizeObject;
 import com.blodev.bundlize.annotations.BundlizeProperty;
 
+/**
+ * A Sample object for running the test case.
+ * @author Sagi Antebi
+ *
+ */
 @BundlizeObject
 public class BundlizeTestObject {
 	
@@ -43,7 +48,7 @@ public class BundlizeTestObject {
 	public BundlizeTestObject() {
 		mInt = (int) (Math.random() * Integer.MAX_VALUE);
 		mLong = (long) (Math.random() * Long.MAX_VALUE);
-		mString = "I am a string";
+		mString = getRandomString();
 	}
 	
 	public int getInt() {
@@ -58,6 +63,15 @@ public class BundlizeTestObject {
 		return mLong;
 	}
 	
-	
+	private String getRandomString() {
+		String retVal = "";
+		
+		for (int i = 0; i < 256; i++) {
+			char c = (char) (Math.random()*255);
+			retVal = retVal.concat(String.valueOf(c));
+		}
+		
+		return retVal;
+	}
 
 }

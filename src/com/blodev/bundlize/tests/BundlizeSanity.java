@@ -30,6 +30,11 @@ import android.os.Bundle;
 
 import com.blodev.bundlize.logic.Bundlize;
 
+/**
+ * A Class to test Bundlize's sanity
+ * @author Sagi Antebi
+ *
+ */
 public class BundlizeSanity extends TestCase {
 
 	private BundlizeTestObject mBundleableObject;
@@ -45,8 +50,25 @@ public class BundlizeSanity extends TestCase {
 		mBundleableObjectBundleRep = Bundlize.bundle(mBundleableObject);
 		assertEquals(mBundleableObject.getInt(), mBundleableObjectBundleRep.getInt("mInt"));
 		assertEquals(mBundleableObject.getLong(), mBundleableObjectBundleRep.getLong("mLong"));
-		assertEquals(mBundleableObject.getString(), mBundleableObjectBundleRep.getString("mString"));		
+		assertEquals(mBundleableObject.getString(), mBundleableObjectBundleRep.getString("mString"));
+		
+		int goodInt = mBundleableObject.getInt();
+		long goodLong = mBundleableObject.getLong();
+		String goodString = mBundleableObject.getString();
+		
+		//randomize the object's field by creating a new one.
+		mBundleableObject = new BundlizeTestObject();
+
+		boolean assertSucess = Bundlize.readFromBundle(mBundleableObjectBundleRep, mBundleableObject);
+		assertTrue(assertSucess);
+		
+		assertEquals(goodInt, mBundleableObject.getInt());
+		assertEquals(goodLong, mBundleableObject.getLong());
+		assertEquals(goodString, mBundleableObject.getString());
+				
 	}
+	
+	
 	
 	
 	

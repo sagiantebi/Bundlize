@@ -36,6 +36,8 @@ import com.blodev.bundlize.annotations.BundlizeProperty;
 @BundlizeObject
 public class BundlizeTestObject {
 	
+	public static final int ARRAY_LENGTH = 10;
+	
 	@BundlizeProperty
 	private int mInt = -1;
 
@@ -45,10 +47,32 @@ public class BundlizeTestObject {
 	@BundlizeProperty
 	private long mLong = -1;
 	
+	@BundlizeProperty
+	private String[] mStrings = null;
+	
+	@BundlizeProperty
+	private int[] mInts = null;
+	
+	@BundlizeProperty
+	private long[] mLongs = null;
+	
+	
 	public BundlizeTestObject() {
 		mInt = (int) (Math.random() * Integer.MAX_VALUE);
 		mLong = (long) (Math.random() * Long.MAX_VALUE);
 		mString = getRandomString();
+		mStrings = new String[ARRAY_LENGTH];
+		for (int i = 0; i < ARRAY_LENGTH; i++) {
+			mStrings[i] = getRandomString();
+		}
+		mInts = new int[ARRAY_LENGTH];
+		for (int i = 0; i < ARRAY_LENGTH; i++) {
+			mInts[i] = (int) (Math.random() * Integer.MAX_VALUE);
+		}
+		mLongs = new long[ARRAY_LENGTH];
+		for (int i = 0; i < ARRAY_LENGTH; i++) {
+			mLongs[i] = (long) (Math.random() * Long.MAX_VALUE);
+		}
 	}
 	
 	public int getInt() {
@@ -63,6 +87,18 @@ public class BundlizeTestObject {
 		return mLong;
 	}
 	
+	public String[] getStrings() {
+		return mStrings;
+	}
+	
+	public int[] getInts() {
+		return mInts;
+	}
+	
+	public long[] getLongs() {
+		return mLongs;
+	}
+	
 	private String getRandomString() {
 		String retVal = "";
 		
@@ -73,5 +109,7 @@ public class BundlizeTestObject {
 		
 		return retVal;
 	}
+	
+	
 
 }

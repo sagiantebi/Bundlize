@@ -25,7 +25,9 @@
 
 package com.blodev.bundlize.logic;
 
+import java.io.Serializable;
 import java.lang.reflect.Field;
+import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -133,16 +135,72 @@ public class Bundlize {
 		String fName = field.getName();
 		Object fValue = field.get(origin);
 		Class<?> fType = field.getType();
-		if (fType.equals(int.class) || fType.equals(Integer.class)) {
+		if (fType.equals(boolean.class) || fType.equals(Boolean.class)) {
+			b.putBoolean(fName, (Boolean)fValue);
+		} else if (fType.equals(int.class) || fType.equals(Integer.class)) {
 			b.putInt(fName, (Integer) fValue);
 		} else if (fType.equals(String.class)) {
 			b.putString(fName, (String) fValue);
 		} else if (fType.equals(long.class) || fType.equals(Long.class)) {
 			b.putLong(fName, (Long) fValue);
+		} else if (fType.equals(double.class) || (fType.equals(Double.class))) {
+			b.putDouble(fName, (Double)fValue);
+		} else if (fType.equals(float.class) || fType.equals(Float.class)) {
+			b.putFloat(fName, (Float)fValue);
+		} else if (fType.equals(byte.class) || fType.equals(Byte.class)) {
+			b.putByte(fName, (Byte)fValue);
+		} else if (fType.equals(char.class) || fType.equals(Character.class)) {
+			b.putChar(fName, (Character)fValue);
+		} else if (fType.equals(short.class) || fType.equals(Short.class)) {
+			b.putShort(fName, (Short)fValue);
+		} else if (fType.isArray()) {
+			Class<?> fArrayClass = fType.getComponentType();
+			if (fArrayClass.equals(boolean.class) || fArrayClass.equals(Boolean.class)) {
+				b.putBooleanArray(fName, (boolean[])fValue);
+			} else if (fArrayClass.equals(String.class)) {
+				b.putStringArray(fName, (String[]) fValue);
+			} else if (fArrayClass.equals(int.class) || fArrayClass.equals(Integer.class)) {
+				b.putIntArray(fName, (int[])fValue);
+			} else if (fArrayClass.equals(long.class) || fArrayClass.equals(Long.class)) {
+				b.putLongArray(fName, (long[])fValue);
+			} else if (fArrayClass.equals(double.class) || fArrayClass.equals(Double.class)) {
+				b.putDoubleArray(fName, (double[])fValue);
+			} else if (fArrayClass.equals(float.class) || fArrayClass.equals(Float.class)) {
+				b.putFloatArray(fName, (float[])fValue);
+			} else if (fArrayClass.equals(byte.class) || fArrayClass.equals(Byte.class)) {
+				b.putByteArray(fName, (byte[])fValue);
+			} else if (fArrayClass.equals(char.class) || fArrayClass.equals(Character.class)) {
+				b.putCharArray(fName, (char[])fValue);
+			} else if (fArrayClass.equals(short.class) || fArrayClass.equals(Short.class)) {
+				b.putShortArray(fName, (short[])fValue);
+			}	
+		} else {
+			Type[] fInterfaces = fType.getGenericInterfaces();
+			//FIXME untested stub.
+			if (typeContains(Serializable.class, fInterfaces)) {
+				Log.d(LOGCAT_TAG, "Under construction");
+			}
 		}
-
 		field.setAccessible(accessible);
 	}
+	
+	/**
+	 * Looks up an interface class in a type array.
+	 * @param tInterface The interface class to look for
+	 * @param tArray The type array containing all interfaces
+ 	 * @return true if tInterface is sfound in tArray
+	 */
+	private static boolean typeContains(Class<?> tInterface, Type[] tArray) {
+		
+		for (Type t : tArray) {
+			if (t.getClass().equals(tInterface)) {
+				return true;
+			}
+		}
+		
+		return false;
+	}
+	
 	
 	/**
 	 * Reads a field from a bundle, assigning the field's value to itself.

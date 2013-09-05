@@ -51,6 +51,19 @@ public class BundlizeSanity extends TestCase {
 		assertEquals(mBundleableObject.getInt(), mBundleableObjectBundleRep.getInt("mInt"));
 		assertEquals(mBundleableObject.getLong(), mBundleableObjectBundleRep.getLong("mLong"));
 		assertEquals(mBundleableObject.getString(), mBundleableObjectBundleRep.getString("mString"));
+		String[] originalStrings = mBundleableObject.getStrings();
+		String[] bundledStrings = mBundleableObjectBundleRep.getStringArray("mStrings");
+		int[] originalInts = mBundleableObject.getInts();
+		int[] bundledInts = mBundleableObjectBundleRep.getIntArray("mInts");
+		long[] originalLongs = mBundleableObject.getLongs();
+		long[] bundledLongs = mBundleableObjectBundleRep.getLongArray("mLongs");
+		for (int i = 0; i < BundlizeTestObject.ARRAY_LENGTH; i++) {
+			assertEquals(originalStrings[i], bundledStrings[i]);
+			assertEquals(originalInts[i], bundledInts[i]);
+			assertEquals(originalLongs[i], bundledLongs[i]);
+		}
+		
+		//FIXME include all supported types in this test.
 		
 		int goodInt = mBundleableObject.getInt();
 		long goodLong = mBundleableObject.getLong();

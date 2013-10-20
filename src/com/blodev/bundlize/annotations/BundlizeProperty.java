@@ -37,5 +37,7 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ElementType.FIELD, ElementType.PARAMETER})
 public @interface BundlizeProperty  {
-
+	Class<?>[] genericTypes() default {};
+	String setter() default "";
+	String getter() default "";
 }

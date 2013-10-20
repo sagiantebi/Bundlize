@@ -32,7 +32,10 @@ import java.util.ArrayList;
 import java.util.List;
 
 import android.os.Bundle;
+import android.os.IBinder;
+import android.os.Parcelable;
 import android.util.Log;
+import android.util.SparseArray;
 
 import com.blodev.bundlize.annotations.BundlizeObject;
 import com.blodev.bundlize.annotations.BundlizeProperty;
@@ -44,7 +47,7 @@ import com.blodev.bundlize.annotations.BundlizeProperty;
 public class Bundlize {
 
 	private static final String LOGCAT_TAG = "bundelize";
-	
+		
 	/**
 	 * Flattens the object into in a bundle, returning the bundle created.<br>
 	 * The Object itself must have the {@link BundlizeObject} Annotation.<br>
@@ -60,6 +63,7 @@ public class Bundlize {
 		}
 		
 		Field[] fields = getAnnotatedProperties(target);
+		
 		retVal = new Bundle();
 		for (Field field : fields) {
 			try {
@@ -81,7 +85,7 @@ public class Bundlize {
 	public static boolean readFromBundle(Bundle bundle, Object target) {
 		boolean retVal = true;
 		
-		if (target == null || (target != null && !target.getClass().isAnnotationPresent(BundlizeObject.class))) {
+		if (target == null || !target.getClass().isAnnotationPresent(BundlizeObject.class)) {
 			return false;
 		}
 		
@@ -124,17 +128,17 @@ public class Bundlize {
 	 * @throws IllegalArgumentException in case reflection fails.
 	 * @throws IllegalAccessException in case reflection fails.
 	 */
+	@SuppressWarnings("unchecked")
 	private static void writeFieldToBundle(Field field, Bundle b, Object origin) throws IllegalArgumentException, IllegalAccessException {
 
 		boolean accessible = field.isAccessible();
 		if (!accessible) {
 			field.setAccessible(true);
 		}
-		
-		
 		String fName = field.getName();
 		Object fValue = field.get(origin);
-		Class<?> fType = field.getType();
+		Class<?> fType = field.getType();		
+		
 		if (fType.equals(boolean.class) || fType.equals(Boolean.class)) {
 			b.putBoolean(fName, (Boolean)fValue);
 		} else if (fType.equals(int.class) || fType.equals(Integer.class)) {
@@ -153,37 +157,98 @@ public class Bundlize {
 			b.putChar(fName, (Character)fValue);
 		} else if (fType.equals(short.class) || fType.equals(Short.class)) {
 			b.putShort(fName, (Short)fValue);
+		} else if (isGenericClassInterface(Parcelable.class, ArrayList.class, field, fType)) {
+			b.putParcelableArrayList(fName, (ArrayList<? extends Parcelable>) fValue); // unchecked raw type
+		} else if (isGenericClassInterface(Parcelable.class, SparseArray.class, field, fType)) {
+			b.putSparseParcelableArray(fName, (SparseArray<? extends Parcelable>) fValue);  //unchecked raw type
+		} else if (isGenericClass(Integer.class, ArrayList.class, field, fType)) {
+			b.putIntegerArrayList(fName, (ArrayList<Integer>) fValue); //unchecked raw type
+		} else if (isGenericClass(String.class, ArrayList.class, field, fType)) {
+			b.putStringArrayList(fName, (ArrayList<String>) fValue); //unchecked raw type
+		} else if (isGenericClassInterface(CharSequence.class, ArrayList.class, field, fType)) {
+			b.putCharSequenceArrayList(fName, (ArrayList<CharSequence>) fValue); //unchecked raw type
+		} else if (fType.equals(Bundle.class)) {
+			b.putBundle(fName, (Bundle) fValue);
 		} else if (fType.isArray()) {
-			Class<?> fArrayClass = fType.getComponentType();
-			if (fArrayClass.equals(boolean.class) || fArrayClass.equals(Boolean.class)) {
-				b.putBooleanArray(fName, (boolean[])fValue);
-			} else if (fArrayClass.equals(String.class)) {
-				b.putStringArray(fName, (String[]) fValue);
-			} else if (fArrayClass.equals(int.class) || fArrayClass.equals(Integer.class)) {
-				b.putIntArray(fName, (int[])fValue);
-			} else if (fArrayClass.equals(long.class) || fArrayClass.equals(Long.class)) {
-				b.putLongArray(fName, (long[])fValue);
-			} else if (fArrayClass.equals(double.class) || fArrayClass.equals(Double.class)) {
-				b.putDoubleArray(fName, (double[])fValue);
-			} else if (fArrayClass.equals(float.class) || fArrayClass.equals(Float.class)) {
-				b.putFloatArray(fName, (float[])fValue);
-			} else if (fArrayClass.equals(byte.class) || fArrayClass.equals(Byte.class)) {
-				b.putByteArray(fName, (byte[])fValue);
-			} else if (fArrayClass.equals(char.class) || fArrayClass.equals(Character.class)) {
-				b.putCharArray(fName, (char[])fValue);
-			} else if (fArrayClass.equals(short.class) || fArrayClass.equals(Short.class)) {
-				b.putShortArray(fName, (short[])fValue);
-			}	
+			writeArrayToBundle(fName, fValue, fType, b);	
 		} else {
 			Type[] fInterfaces = fType.getGenericInterfaces();
-			//FIXME untested stub.
-			if (typeContains(Serializable.class, fInterfaces)) {
-				Log.d(LOGCAT_TAG, "Under construction");
+			if (typeContains(CharSequence.class, fInterfaces)) {
+				b.putCharSequence(fName, (CharSequence) fValue);
+			} else if (typeContains(Parcelable.class, fInterfaces)) {
+				b.putParcelable(fName, (Parcelable) fValue);
+			} else if (typeContains(Serializable.class, fInterfaces)) {
+				b.putSerializable(fName, (Serializable) fValue);
+			} else if (typeContains(IBinder.class, fInterfaces)) {
+				b.putBinder(fName, (IBinder) fValue);
 			}
 		}
 		field.setAccessible(accessible);
 	}
 	
+	private static void writeArrayToBundle(String fName, Object fValue, Class<?> fType, Bundle b) {
+		Class<?> fArrayClass = fType.getComponentType();
+		if (fArrayClass.equals(boolean.class) || fArrayClass.equals(Boolean.class)) {
+			b.putBooleanArray(fName, (boolean[])fValue);
+		} else if (fArrayClass.equals(String.class)) {
+			b.putStringArray(fName, (String[]) fValue);
+		} else if (fArrayClass.equals(int.class) || fArrayClass.equals(Integer.class)) {
+			b.putIntArray(fName, (int[])fValue);
+		} else if (fArrayClass.equals(long.class) || fArrayClass.equals(Long.class)) {
+			b.putLongArray(fName, (long[])fValue);
+		} else if (fArrayClass.equals(double.class) || fArrayClass.equals(Double.class)) {
+			b.putDoubleArray(fName, (double[])fValue);
+		} else if (fArrayClass.equals(float.class) || fArrayClass.equals(Float.class)) {
+			b.putFloatArray(fName, (float[])fValue);
+		} else if (fArrayClass.equals(byte.class) || fArrayClass.equals(Byte.class)) {
+			b.putByteArray(fName, (byte[])fValue);
+		} else if (fArrayClass.equals(char.class) || fArrayClass.equals(Character.class)) {
+			b.putCharArray(fName, (char[])fValue);
+		} else if (fArrayClass.equals(short.class) || fArrayClass.equals(Short.class)) {
+			b.putShortArray(fName, (short[])fValue);
+		} else {
+			Type[] fInterfaces = fArrayClass.getGenericInterfaces();
+			if (typeContains(Parcelable.class, fInterfaces)) {
+				b.putParcelableArray(fName, (Parcelable[]) fValue);
+			} else if (typeContains(CharSequence.class, fInterfaces)) {
+				b.putCharSequenceArray(fName, (CharSequence[]) fValue);
+			}
+		}
+	}
+		
+	private static boolean isGenericClassInterface(Class<?> genericType, Class<?> implementingClass, Field field, Class<?> fType) { 
+		boolean retVal = false;
+		BundlizeProperty bProp = field.getAnnotation(BundlizeProperty.class);
+		if (fType.equals(implementingClass) && typeContains(genericType, getGenericTypesInterfaces(bProp))) {
+			retVal = true;
+		}
+		return retVal;
+	}
+	
+	private static boolean isGenericClass(Class<?> genericType, Class<?> implementingClass, Field field, Class<?> fType) { 
+		boolean retVal = false;
+		BundlizeProperty bProp = field.getAnnotation(BundlizeProperty.class);
+		if (fType.equals(implementingClass) && typeContains(genericType, bProp.genericTypes())) {
+			retVal = true;
+		}
+		return retVal;
+	}
+	
+	private static Type[] getGenericTypesInterfaces(BundlizeProperty property) {
+		List<Type> temporaryList = new ArrayList<Type>();
+		
+		if (property.genericTypes() != null) {
+			for (Class<?> Clazz : property.genericTypes()) {
+				for (Type t : Clazz.getGenericInterfaces()) {
+					temporaryList.add(t);
+				}
+			}
+		}
+		
+		return temporaryList.toArray(new Type[temporaryList.size()]);
+	}
+	
+
 	/**
 	 * Looks up an interface class in a type array.
 	 * @param tInterface The interface class to look for
@@ -191,13 +256,13 @@ public class Bundlize {
  	 * @return true if tInterface is sfound in tArray
 	 */
 	private static boolean typeContains(Class<?> tInterface, Type[] tArray) {
-		
-		for (Type t : tArray) {
-			if (t.getClass().equals(tInterface)) {
-				return true;
+		if (tArray != null) {
+			for (Type t : tArray) {
+				if (t.equals(tInterface)) {
+					return true;
+				}
 			}
 		}
-		
 		return false;
 	}
 	

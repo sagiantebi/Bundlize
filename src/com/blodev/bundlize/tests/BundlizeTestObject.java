@@ -25,6 +25,10 @@
 
 package com.blodev.bundlize.tests;
 
+import java.util.ArrayList;
+
+import android.util.SparseArray;
+
 import com.blodev.bundlize.annotations.BundlizeObject;
 import com.blodev.bundlize.annotations.BundlizeProperty;
 
@@ -37,6 +41,15 @@ import com.blodev.bundlize.annotations.BundlizeProperty;
 public class BundlizeTestObject {
 	
 	public static final int ARRAY_LENGTH = 10;
+	
+	@BundlizeProperty
+	private BundlizeParcelableTestObj mTestObject;
+	
+	@BundlizeProperty (genericTypes={BundlizeParcelableTestObj.class})
+	private ArrayList<BundlizeParcelableTestObj> mTestObjects;
+	
+	@BundlizeProperty (genericTypes={BundlizeParcelableTestObj.class})
+	private SparseArray<BundlizeParcelableTestObj> mTestObjectsSparse;
 	
 	@BundlizeProperty
 	private int mInt = -1;
@@ -58,6 +71,20 @@ public class BundlizeTestObject {
 	
 	
 	public BundlizeTestObject() {
+		mTestObject = new BundlizeParcelableTestObj(getRandomString());
+		
+		mTestObjects = new ArrayList<BundlizeParcelableTestObj>();
+		for (int i = 0; i < 10; i++) {
+			BundlizeParcelableTestObj t = new BundlizeParcelableTestObj(getRandomString());
+			mTestObjects.add(t);
+		}
+		
+		mTestObjectsSparse = new SparseArray<BundlizeParcelableTestObj>();
+		for (int i = 0; i < 100; i=i+10) {
+			BundlizeParcelableTestObj t = new BundlizeParcelableTestObj(getRandomString());
+			mTestObjectsSparse.put(i, t);
+		}
+		
 		mInt = (int) (Math.random() * Integer.MAX_VALUE);
 		mLong = (long) (Math.random() * Long.MAX_VALUE);
 		mString = getRandomString();
@@ -98,6 +125,12 @@ public class BundlizeTestObject {
 	public long[] getLongs() {
 		return mLongs;
 	}
+	
+	public BundlizeParcelableTestObj getParcelableTestObject() {
+		return mTestObject;
+	}
+	
+	
 	
 	private String getRandomString() {
 		String retVal = "";

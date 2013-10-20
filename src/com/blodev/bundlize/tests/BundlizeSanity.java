@@ -47,6 +47,9 @@ public class BundlizeSanity extends TestCase {
 	}
 	
 	public void testBundling() {
+		
+		//TODO add tests for all type implemented in bundle()
+		
 		mBundleableObjectBundleRep = Bundlize.bundle(mBundleableObject);
 		assertEquals(mBundleableObject.getInt(), mBundleableObjectBundleRep.getInt("mInt"));
 		assertEquals(mBundleableObject.getLong(), mBundleableObjectBundleRep.getLong("mLong"));
@@ -80,9 +83,5 @@ public class BundlizeSanity extends TestCase {
 		assertEquals(goodString, mBundleableObject.getString());
 				
 	}
-	
-	
-	
-	
 	
 }

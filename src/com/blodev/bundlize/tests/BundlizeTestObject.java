@@ -26,6 +26,7 @@
 package com.blodev.bundlize.tests;
 
 import java.util.ArrayList;
+import java.util.List;
 
 import android.util.SparseArray;
 
@@ -51,6 +52,9 @@ public class BundlizeTestObject {
 	@BundlizeProperty (genericTypes={BundlizeParcelableTestObj.class})
 	private SparseArray<BundlizeParcelableTestObj> mTestObjectsSparse;
 	
+	@BundlizeProperty (genericTypes={BundlizeForeignObject.class})
+	private List<BundlizeForeignObject> mTestForeignObjectList;
+	
 	@BundlizeProperty
 	private int mInt = -1;
 
@@ -74,10 +78,16 @@ public class BundlizeTestObject {
 		mTestObject = new BundlizeParcelableTestObj(getRandomString());
 		
 		mTestObjects = new ArrayList<BundlizeParcelableTestObj>();
+		mTestForeignObjectList = new ArrayList<BundlizeForeignObject>();
+
 		for (int i = 0; i < 10; i++) {
 			BundlizeParcelableTestObj t = new BundlizeParcelableTestObj(getRandomString());
 			mTestObjects.add(t);
+			BundlizeForeignObject tt = new BundlizeForeignObject(getRandomString());
+			mTestForeignObjectList.add(tt);
+
 		}
+		
 		
 		mTestObjectsSparse = new SparseArray<BundlizeParcelableTestObj>();
 		for (int i = 0; i < 100; i=i+10) {

@@ -50,6 +50,8 @@ public class BundlizeSanity extends TestCase {
 		
 		//TODO add tests for all type implemented in bundle()
 		
+		Bundlize.applyClassLoader(Thread.currentThread().getContextClassLoader());
+		
 		mBundleableObjectBundleRep = Bundlize.bundle(mBundleableObject);
 		assertEquals(mBundleableObject.getInt(), mBundleableObjectBundleRep.getInt("mInt"));
 		assertEquals(mBundleableObject.getLong(), mBundleableObjectBundleRep.getLong("mLong"));

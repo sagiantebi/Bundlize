@@ -47,7 +47,24 @@ import com.blodev.bundlize.annotations.BundlizeProperty;
 public class Bundlize {
 
 	private static final String LOGCAT_TAG = "bundelize";
+	private static final String FOREIGN_OBJECTS_KEY = "__bundelize_fks";
 		
+	private static ClassLoader sClassLoader = null;
+	
+	/**
+	 * Applies a class loader to be used to find the current package's classes.
+	 * A common approach would be to use Thread.currentThread().getContextClassLoader() as the supplied paramater
+	 * @param classLoader
+	 */
+	public static void applyClassLoader(ClassLoader classLoader) {
+		sClassLoader = classLoader;
+	}
+	
+	/*package*/ static ClassLoader getClassLoader() {
+		return sClassLoader;
+	}
+	
+	
 	/**
 	 * Flattens the object into in a bundle, returning the bundle created.<br>
 	 * The Object itself must have the {@link BundlizeObject} Annotation.<br>
@@ -181,11 +198,57 @@ public class Bundlize {
 				b.putSerializable(fName, (Serializable) fValue);
 			} else if (typeContains(IBinder.class, fInterfaces)) {
 				b.putBinder(fName, (IBinder) fValue);
+			} else {
+				// non common bundle type.
+				writeObjectToBundle(field, b, origin);
 			}
 		}
 		field.setAccessible(accessible);
 	}
 	
+	private static void writeObjectToBundle(Field field, Bundle b, Object origin) throws IllegalArgumentException, IllegalAccessException {
+		
+		boolean accessible = field.isAccessible();
+		if (!accessible) {
+			field.setAccessible(true);
+		}
+		String fName = field.getName();
+		Object fValue = field.get(origin);
+		Class<?> fType = field.getType();	
+		
+		if (fType.equals(List.class)) {
+			ListWrapper lw = new ListWrapper((List<?>) fValue);
+			writeForeignMarker(fName, b);
+			b.putParcelable(fName, lw);
+		}
+		
+		
+		field.setAccessible(accessible);
+	}
+
+	private static void readForeignField(Field field, Bundle b, Object origin) throws IllegalArgumentException, IllegalAccessException {
+		
+		Class<?> fType = field.getType();
+		String fName = field.getName();
+		if (fType.equals(List.class)) {
+			ListWrapper lw = b.getParcelable(fName);
+			field.set(origin, lw.getValue());
+		}
+		
+	}
+	
+	private static void writeForeignMarker(String fName, Bundle b) {
+		List<String> fks = null;
+		if (b.containsKey(FOREIGN_OBJECTS_KEY)) {
+			fks = b.getStringArrayList(FOREIGN_OBJECTS_KEY);
+		} else {
+			fks = new ArrayList<String>();
+			b.putStringArrayList(FOREIGN_OBJECTS_KEY, (ArrayList<String>) fks);
+		}
+		fks.add(fName);
+	}
+
+
 	private static void writeArrayToBundle(String fName, Object fValue, Class<?> fType, Bundle b) {
 		Class<?> fArrayClass = fType.getComponentType();
 		if (fArrayClass.equals(boolean.class) || fArrayClass.equals(Boolean.class)) {
@@ -281,8 +344,22 @@ public class Bundlize {
 			field.setAccessible(true);
 		}
 		String fName = field.getName();
-		field.set(origin, b.get(fName));
+		if (isForeignField(fName, b)) {
+			readForeignField(field,b,origin);
+		} else {
+			field.set(origin, b.get(fName));
+		}
 		field.setAccessible(accessible);
+	}
+
+
+
+	private static boolean isForeignField(String fName, Bundle b) {
+		if (b.containsKey(FOREIGN_OBJECTS_KEY)) {
+			List<String> fks = b.getStringArrayList(FOREIGN_OBJECTS_KEY);
+			return fks.contains(fName);
+		}
+		return false;
 	}
 	
 }
